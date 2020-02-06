@@ -1,8 +1,9 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.1-apache
+FROM php:7.3-apache-stretch
+# TODO switch to buster once https://github.com/docker-library/php/issues/865 is resolved in a clean way (either in the PHP image or in PHP itself)
 
 # install the PHP extensions we need
-RUN set -ex; \
+RUN set -eux; \
 	\
 	if command -v a2enmod; then \
 		a2enmod rewrite; \
@@ -12,15 +13,21 @@ RUN set -ex; \
 	\
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
+		libfreetype6-dev \
 		libjpeg-dev \
 		libpng-dev \
 		libpq-dev \
+		libzip-dev \
 	; \
 	\
-	docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
+	docker-php-ext-configure gd \
+		--with-freetype-dir=/usr \
+		--with-jpeg-dir=/usr \
+		--with-png-dir=/usr \
+	; \
 	docker-php-ext-configure exif; \
 	docker-php-ext-install -j "$(nproc)" \
-        exif \
+		exif \
 		gd \
 		opcache \
 		pdo_mysql \
@@ -50,19 +57,19 @@ RUN { \
 		echo 'opcache.max_accelerated_files=4000'; \
 		echo 'opcache.revalidate_freq=60'; \
 		echo 'opcache.fast_shutdown=1'; \
-		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 WORKDIR /var/www/html
 
 # https://www.drupal.org/node/3060/release
-ENV DRUPAL_VERSION 7.67
-ENV DRUPAL_MD5 78b1814e55fdaf40e753fd523d059f8d
+ENV DRUPAL_VERSION 7.69
+ENV DRUPAL_MD5 292290a2fb1f5fc919291dc3949cdf7c
 
-RUN curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz \
-	&& echo "${DRUPAL_MD5} *drupal.tar.gz" | md5sum -c - \
-	&& tar -xz --strip-components=1 -f drupal.tar.gz \
-	&& rm drupal.tar.gz \
-	&& chown -R www-data:www-data sites modules themes
+RUN set -eux; \
+	curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz; \
+	echo "${DRUPAL_MD5} *drupal.tar.gz" | md5sum -c -; \
+	tar -xz --strip-components=1 -f drupal.tar.gz; \
+	rm drupal.tar.gz; \
+	chown -R www-data:www-data sites modules themes
 
 # vim:set ft=dockerfile:
