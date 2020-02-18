@@ -59,17 +59,35 @@ RUN { \
 		echo 'opcache.fast_shutdown=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
+RUN apt-get update && \
+	apt-get -y install git && \
+	git clone https://github.com/Jan-E/uploadprogress.git /tmp/php-uploadprogress && \
+	cd /tmp/php-uploadprogress && \
+	phpize && \
+	./configure --prefix=/usr && \
+	make && \
+	make install && \
+	echo 'extension=uploadprogress.so' > "${PHP_INI_DIR}/conf.d/uploadprogress.ini" && \
+	echo 'allow_url_include=1' > "${PHP_INI_DIR}/conf.d/mmed.ini" && \
+	echo 'upload_max_filesize=50M' >> "${PHP_INI_DIR}/conf.d/mmed.ini" && \
+	echo 'post_max_size=100M' >> "${PHP_INI_DIR}/conf.d/mmed.ini" && \
+	cd /tmp && \
+	git clone https://github.com/longxinH/xhprof.git && \
+	cd /tmp/xhprof/extension && \
+	phpize && \
+	./configure && make && make install && \
+	echo '[xhprof]' > "${PHP_INI_DIR}/conf.d/xhprof.ini" && \
+	echo 'extension = xhprof.so' >> "${PHP_INI_DIR}/conf.d/xhprof.ini" && \
+	echo 'xhprof.output_dir = /xhprof' >> "${PHP_INI_DIR}/conf.d/xhprof.ini" && \
+	mkdir /xhprof && chown www-data:www-data /xhprof && \
+	curl -so /tmp/composer-installer.sig https://composer.github.io/installer.sig && \
+	curl -so /tmp/composer-setup.php https://getcomposer.org/installer && \
+	php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') !== trim(file_get_contents('/tmp/composer-installer.sig'))) {unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1);}" && \
+	php /tmp/composer-setup.php --no-ansi --filename=composer --snapshot && \
+	mv composer /usr/local/bin && \
+	rm -rf /tmp/* /var/lib/apt/lists/*
+
+
 WORKDIR /var/www/html
-
-# https://www.drupal.org/node/3060/release
-ENV DRUPAL_VERSION 7.69
-ENV DRUPAL_MD5 292290a2fb1f5fc919291dc3949cdf7c
-
-RUN set -eux; \
-	curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz; \
-	echo "${DRUPAL_MD5} *drupal.tar.gz" | md5sum -c -; \
-	tar -xz --strip-components=1 -f drupal.tar.gz; \
-	rm drupal.tar.gz; \
-	chown -R www-data:www-data sites modules themes
 
 # vim:set ft=dockerfile:
