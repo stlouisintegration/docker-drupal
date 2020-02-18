@@ -25,8 +25,9 @@ RUN set -eux; \
 		--with-jpeg-dir=/usr \
 		--with-png-dir=/usr \
 	; \
-	\
+	docker-php-ext-configure exif; \
 	docker-php-ext-install -j "$(nproc)" \
+		exif \
 		gd \
 		opcache \
 		pdo_mysql \
