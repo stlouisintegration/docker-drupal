@@ -10,13 +10,12 @@ fi
 versions=( "${versions[@]%/}" )
 
 # https://www.drupal.org/docs/8/system-requirements/php-requirements#php_required
-defaultPhpVersion='7.3'
+defaultPhpVersion='7.4'
 declare -A phpVersions=(
 	# https://www.drupal.org/docs/7/system-requirements/php-requirements#php_required
 	#[7]='7.2'
 )
 
-travisEnv=
 for version in "${versions[@]}"; do
 	rcGrepV='-v'
 	rcVersion="${version%-rc}"
@@ -58,10 +57,5 @@ for version in "${versions[@]}"; do
 			-e 's/%%VERSION%%/'"$fullVersion"'/' \
 			-e 's/%%MD5%%/'"$md5"'/' \
 		"./Dockerfile-$dist.template" > "$version/$variant/Dockerfile"
-
-		travisEnv='\n  - VERSION='"$version"' VARIANT='"$variant$travisEnv"
 	done
 done
-
-travis="$(awk -v 'RS=\n\n' '$1 == "env:" { $0 = "env:'"$travisEnv"'" } { printf "%s%s", $0, RS }' .travis.yml)"
-echo "$travis" > .travis.yml

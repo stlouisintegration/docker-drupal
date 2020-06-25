@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.3-fpm-alpine
+FROM php:7.4-fpm-alpine
 
 # install the PHP extensions we need
 # postgresql-dev is needed for https://bugs.alpinelinux.org/issues/3642
@@ -15,9 +15,8 @@ RUN set -eux; \
 	; \
 	\
 	docker-php-ext-configure gd \
-		--with-freetype-dir=/usr/include \
-		--with-jpeg-dir=/usr/include \
-		--with-png-dir=/usr/include \
+		--with-freetype \
+		--with-jpeg=/usr/include \
 	; \
 	\
 	docker-php-ext-install -j "$(nproc)" \
@@ -50,8 +49,8 @@ RUN { \
 WORKDIR /var/www/html
 
 # https://www.drupal.org/node/3060/release
-ENV DRUPAL_VERSION 8.8.2
-ENV DRUPAL_MD5 ad3ba707ce67e14590a55f6b313d3bec
+ENV DRUPAL_VERSION 8.8.8
+ENV DRUPAL_MD5 c8265f0228ca0306de7b2755e4731a3d
 
 RUN set -eux; \
 	curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz; \

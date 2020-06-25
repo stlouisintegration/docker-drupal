@@ -1,5 +1,5 @@
 # from https://www.drupal.org/docs/8/system-requirements/drupal-8-php-requirements
-FROM php:7.3-apache-stretch
+FROM php:7.4-apache-buster
 # TODO switch to buster once https://github.com/docker-library/php/issues/865 is resolved in a clean way (either in the PHP image or in PHP itself)
 
 # install the PHP extensions we need
@@ -21,9 +21,8 @@ RUN set -eux; \
 	; \
 	\
 	docker-php-ext-configure gd \
-		--with-freetype-dir=/usr \
-		--with-jpeg-dir=/usr \
-		--with-png-dir=/usr \
+		--with-freetype \
+		--with-jpeg=/usr \
 	; \
 	docker-php-ext-configure exif; \
 	docker-php-ext-install -j "$(nproc)" \
@@ -87,6 +86,9 @@ RUN apt-get update && \
 	mv composer /usr/local/bin && \
 	rm -rf /tmp/* /var/lib/apt/lists/*
 
+# https://www.drupal.org/node/3060/release
+ENV DRUPAL_VERSION 7.72
+ENV DRUPAL_MD5 ed967195ce0e78bf2ab7245aaf0649d6
 
 WORKDIR /var/www/html
 
